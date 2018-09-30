@@ -60,6 +60,17 @@ function mountStorage() {
 
   if (FS.TempStore.Storage) return;
 
+  let path;
+  if (process.platform === 'win32') {
+    path = process.env.APPDATA;
+  } else if (process.platform === 'darwin') {
+    path = process.env.HOME + '/Library/Preferences';
+  } else if (process.platform === 'linux') {
+    path = process.env.HOME + '/var/local';
+  }
+
+  path += '/FHP Tournament Clock Manager/tmp';
+
   // XXX: We could replace this test, testing the FS scope for grifFS etc.
   // This is on the todo later when we get "stable"
   if (Package["cfs:gridfs"] && (Package["cfs:worker"] || !Package["cfs:filesystem"])) {
@@ -67,11 +78,11 @@ function mountStorage() {
     // for scalability. We also default to gridfs if filesystem is not found
 
     // Use the gridfs
-    FS.TempStore.Storage = new FS.Store.GridFS('_tempstore', { internal: true });
+    FS.TempStore.Storage = new FS.Store.GridFS('_tempstore', { internal: true, path });
   } else if (Package["cfs:filesystem"]) {
 
     // use the Filesystem
-    FS.TempStore.Storage = new FS.Store.FileSystem('_tempstore', { internal: true });
+    FS.TempStore.Storage = new FS.Store.FileSystem('_tempstore', { internal: true, path });
   } else {
     throw new Error('FS.TempStore.Storage is not set: Install cfs:filesystem or cfs:gridfs or set it manually');
   }
